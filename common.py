@@ -1,6 +1,5 @@
 import pickle
 import os
-
 import numpy as np
 
 # project root
@@ -18,14 +17,9 @@ RANDOM_STATE = int(config.get("ML", "RANDOM_STATE"))
 DB_PATH = os.path.join(ROOT_DIR, os.path.normpath(DB_PATH))
 
 def transform_target(y):
-  return np.log1p(y).rename('log_'+y.name)
-def step1_add_features(X,abnormal_dates):
-  res = X.copy()
-  res['weekday'] = res['pickup_datetime'].dt.weekday
-  res['month'] = res['pickup_datetime'].dt.month
-  res['hour'] = res['pickup_datetime'].dt.hour
-  res['abnormal_period'] = res['pickup_datetime'].dt.date.isin(abnormal_dates.index).astype(int)
-  return res
+    print("this the y type", type(y))
+    y_train_trip_duration = y['trip_duration']
+    return np.log1p(y_train_trip_duration).rename('log_'+y_train_trip_duration.name)
 
 def preprocess_data(X):
     print(f"Preprocessing data")
@@ -33,23 +27,17 @@ def preprocess_data(X):
     dates = X['pickup_date'].sort_values()
     df_abnormal_dates = X.groupby('pickup_date').size()
     abnormal_dates = df_abnormal_dates[df_abnormal_dates < df_abnormal_dates.quantile(0.02)]
-    X = step1_add_features(X)
-    X_train = step1_add_features(X_train)
-    X_test = step1_add_features(X_test)
+    dict_weekday = {0: 'Monday', 1: 'Tuesday', 2: 'Wednesday', 3: 'Thursday', 4: 'Friday', 5: 'Saturday', 6: 'Sunday'}
+    weekday = X['pickup_datetime'].dt.weekday.map(dict_weekday).rename('weekday')
+    hourofday = X['pickup_datetime'].dt.hour.rename('hour')
+    month = X.pickup_datetime.dt.month.rename('month')
+    res = X.copy()
+    res['weekday'] = res['pickup_datetime'].dt.weekday
+    res['month'] = res['pickup_datetime'].dt.month
+    res['hour'] = res['pickup_datetime'].dt.hour
+    res['abnormal_period'] = res['pickup_datetime'].dt.date.isin(abnormal_dates.index).astype(int)
+    return res
 
-    return X
-def New_features(X):
-    def step1_add_features(X):
-        res = X.copy()
-        res['weekday'] = res['pickup_datetime'].dt.weekday
-        res['month'] = res['pickup_datetime'].dt.month
-        res['hour'] = res['pickup_datetime'].dt.hour
-        res['abnormal_period'] = res['pickup_datetime'].dt.date.isin(abnormal_dates.index).astype(int)
-        return res
-
-    X = step1_add_features(X)
-    X_train = step1_add_features(X_train)
-    X_test = step1_add_features(X_test)
 def persist_model(model, path):
     print(f"Persisting the model to {path}")
     model_dir = os.path.dirname(path)
