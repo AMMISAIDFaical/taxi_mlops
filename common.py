@@ -1,6 +1,8 @@
 import pickle
 import os
 
+import numpy as np
+
 # project root
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_PATH = os.path.join(ROOT_DIR, 'config.ini')
@@ -13,24 +15,41 @@ config.read(CONFIG_PATH)
 DB_PATH = str(config.get("PATHS", "DB_PATH"))
 MODEL_PATH = str(config.get("PATHS", "MODEL_PATH"))
 RANDOM_STATE = int(config.get("ML", "RANDOM_STATE"))
-
-# # Doing the same with a YAML configuration file
-# import yaml
-#
-# with open("config.yml", "r") as f:
-#     config_yaml = yaml.load(f, Loader=yaml.SafeLoader)
-#     DB_PATH = str(config_yaml['paths']['db_path'])
-#     MODEL_PATH = str(config_yaml['paths']["model_path"])
-#     RANDOM_STATE = int(config_yaml["ml"]["random_state"])
-
-# SQLite requires the absolute path
-# DB_PATH = os.path.abspath(DB_PATH)
 DB_PATH = os.path.join(ROOT_DIR, os.path.normpath(DB_PATH))
+
+def transform_target(y):
+  return np.log1p(y).rename('log_'+y.name)
+def step1_add_features(X):
+  res = X.copy()
+  res['weekday'] = res['pickup_datetime'].dt.weekday
+  res['month'] = res['pickup_datetime'].dt.month
+  res['hour'] = res['pickup_datetime'].dt.hour
+  res['abnormal_period'] = res['pickup_datetime'].dt.date.isin(abnormal_dates.index).astype(int)
+  return res
 
 def preprocess_data(X):
     print(f"Preprocessing data")
-    return X
+    X['pickup_date'] = X['pickup_datetime'].dt.date
+    dates = X['pickup_date'].sort_values()
+    df_abnormal_dates = X.groupby('pickup_date').size()
+    abnormal_dates = df_abnormal_dates[df_abnormal_dates < df_abnormal_dates.quantile(0.02)]
+    X = step1_add_features(X)
+    X_train = step1_add_features(X_train)
+    X_test = step1_add_features(X_test)
 
+    return X
+def New_features(X):
+    def step1_add_features(X):
+        res = X.copy()
+        res['weekday'] = res['pickup_datetime'].dt.weekday
+        res['month'] = res['pickup_datetime'].dt.month
+        res['hour'] = res['pickup_datetime'].dt.hour
+        res['abnormal_period'] = res['pickup_datetime'].dt.date.isin(abnormal_dates.index).astype(int)
+        return res
+
+    X = step1_add_features(X)
+    X_train = step1_add_features(X_train)
+    X_test = step1_add_features(X_test)
 def persist_model(model, path):
     print(f"Persisting the model to {path}")
     model_dir = os.path.dirname(path)

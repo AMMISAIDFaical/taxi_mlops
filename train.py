@@ -11,6 +11,9 @@ def load_train_data(path):
     X_train = pd.read_sql('SELECT * FROM X_train', con)
     y_train = pd.read_sql('SELECT * FROM y_train', con)
     con.close()
+    X_train = common.preprocess_data(X_train)
+    y_train = common.transform_target(y_train)
+
     return X_train, y_train
 def fit_model(X, y):
     print(f"Fitting a model")
