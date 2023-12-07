@@ -19,7 +19,7 @@ DB_PATH = os.path.join(ROOT_DIR, os.path.normpath(DB_PATH))
 
 def transform_target(y):
   return np.log1p(y).rename('log_'+y.name)
-def step1_add_features(X):
+def step1_add_features(X,abnormal_dates):
   res = X.copy()
   res['weekday'] = res['pickup_datetime'].dt.weekday
   res['month'] = res['pickup_datetime'].dt.month
