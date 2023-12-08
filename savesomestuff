@@ -1,0 +1,43 @@
+
+# class Item (BaseModel):
+#     index: PositiveInt
+#     vendor_id: PositiveInt
+#     pickup_datetime: condate
+#     passenger_count: PositiveInt
+#     pickup_longitude: confloat
+#     pickup_latitude: confloat
+#     dropoff_longitude: confloat
+#     dropoff_latitude: confloat
+#     pickup_date: condate
+#     weekday:Union[PositiveFloat, None] = Field(None, gt=0.0, lt=1.0)
+#     month:Union[PositiveFloat, None] = Field(None, gt=0.0, lt=1.0)
+#     hour: Union[PositiveFloat, None] = Field(None, gt=0.0, lt=1.0)
+#     abnormal_period: PositiveInt
+
+#
+#
+# # Assume you have a model loaded, e.g., `taxi_model`
+# taxi_model = common.load_model(common.MODEL_PATH)  # Load or instantiate your machine learning model
+#
+# @app.post("/predict_taxi/")
+# async def predict_taxi(request: Trip):
+#     try:
+#         # Preprocess input data
+#         input_data = [[
+#             request.index, request.vendor_id, request.passenger_count,
+#             request.pickup_longitude, request.pickup_latitude,
+#             request.dropoff_longitude, request.dropoff_latitude,
+#             request.weekday, request.month, request.hour, request.abnormal_period
+#         ]]  # Add other fields as needed
+#
+#         # Make predictions
+#         prediction = taxi_model.predict(input_data)
+#
+#         # You may post-process the prediction if needed
+#         # For example, convert NumPy array to Python native type
+#         prediction_result = prediction.tolist()
+#
+#         return {"prediction": prediction_result}
+#
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))

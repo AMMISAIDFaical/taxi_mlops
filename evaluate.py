@@ -15,6 +15,8 @@ def load_test_data(path):
 def evaluate_model(model, X_test, y_test):
     print(f"Evaluating the model")
     y_pred = model.predict(X_test)
+    print(X_test.dtypes)
+    print(X_test.describe())
     score = mean_squared_error(y_test, y_pred)
     return score
 
