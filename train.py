@@ -22,9 +22,7 @@ def load_train_data(path):
     type(y_train)
     return X_train, y_train
 
-def fit_model(X_train, y_train):
-    num_features = ['abnormal_period', 'hour']
-    cat_features = ['weekday', 'month']
+def model_train_pipline(num_features,cat_features,X_train, y_train):
     train_features = num_features + cat_features
     column_transformer = ColumnTransformer([
         ('ohe', OneHotEncoder(handle_unknown="ignore"), cat_features),
@@ -34,22 +32,36 @@ def fit_model(X_train, y_train):
         ('ohe_and_scaling', column_transformer),
         ('regression', Ridge())
     ])
-
     model = pipeline.fit(X_train[train_features], y_train)
     y_pred_train = model.predict(X_train[train_features])
-
     print("Train RMSE = %.4f" % mean_squared_error(y_train, y_pred_train, squared=False))
-    # print(f"Fitting a model")
-    # model = LinearRegression()
-    # model.fit(X, y)
-    # y_pred = model.predict(X)
     score = mean_squared_error(y_train, y_pred_train)
     print(f"Score on train data {score:.2f}")
     return model
 
+def model_ft_engen_1(X_train, y_train):
+    num_features = ['abnormal_period', 'hour']
+    cat_features = ['weekday', 'month']
+    print("model ft engineered 1")
+    model = model_train_pipline(num_features,cat_features,X_train, y_train)
+    return model
+
+def model_ft_engen_2(X_train, y_train):
+    num_features = ['log_distance_haversine', 'hour',
+                    'abnormal_period', 'is_high_traffic_trip', 'is_high_speed_trip',
+                    'is_rare_pickup_point', 'is_rare_dropoff_point']
+    cat_features = ['weekday', 'month']
+    print("model ft engineered 2")
+    model = model_train_pipline(num_features, cat_features,X_train, y_train)
+    return model
+
 if __name__ == "__main__":
     X_train, y_train = load_train_data(common.DB_PATH)
-    X_train = common.preprocess_data(X_train)
+    abnormal_dates,X_train = common.preprocess_data(X_train)
     y_train = common.transform_target(y_train)
-    model = fit_model(X_train, y_train)
-    common.persist_model(model, common.MODEL_PATH)
+    X_train = common.ftEngen_step_1(X_train,abnormal_dates)
+    model_1 = model_ft_engen_1(X_train, y_train)
+    X_train = common.ftEngen_step_2(X_train)
+    model_2 = model_ft_engen_2(X_train, y_train)
+    common.persist_model(model_1, common.MODEL_PATH,"model_1")
+    # common.persist_model(model_2, common.MODEL_PATH,'model_2')

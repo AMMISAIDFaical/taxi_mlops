@@ -16,13 +16,14 @@ def evaluate_model(model, X_test, y_test):
     print(f"Evaluating the model")
     y_pred = model.predict(X_test)
     print(X_test.dtypes)
-    print(X_test.describe())
+    # print(X_test.describe())
     score = mean_squared_error(y_test, y_pred)
     return score
 
 if __name__ == "__main__":
     X_test, y_test = load_test_data(common.DB_PATH)
-    X_test = common.preprocess_data(X_test)
+    abnormal_dates,X_test = common.preprocess_data(X_test)
+    X_test = common.ftEngen_step_1(X_test,abnormal_dates)
     y_test = common.transform_target(y_test)
     model = common.load_model(common.MODEL_PATH)
     score_test = evaluate_model(model, X_test, y_test)
